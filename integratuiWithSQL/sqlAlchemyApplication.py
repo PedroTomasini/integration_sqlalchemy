@@ -3,6 +3,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column
+from sqlalchemy import select
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from sqlalchemy import Integer
@@ -18,9 +19,7 @@ class User(Base):
     name = Column(String)
     fullname = Column(String)
 
-    address = relationship(
-        "Address", back_populates="user", cascade="all, delete-orphan"
-    )
+    address = relationship("Address", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"User(id={self.id}, name={self.name}, fullname={self.fullname}"
@@ -74,3 +73,12 @@ with Session(engine) as session:
     session.add_all([pedro, marcus, patrick])
     session.commit()
 
+stmt_user = select(User).where(User.name.in_(['pedro','marcus', 'patrick']))
+print("Recuperrando os usuários a partir de condição de filtragem")
+for user in session.scalars(stmt_user):
+    print(user)
+
+stmt_address = select(Address).where(Address.user_id.in_([1, 2, 3]))
+print("\nRecuperrando os endereços de email a partir do id do usuário")
+for address in session.scalars(stmt_address):
+    print(address)
